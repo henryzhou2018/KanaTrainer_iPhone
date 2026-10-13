@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kana Trainer">
+
+  <title>Kana Trainer</title>
+  <link rel="manifest" href="./manifest.json">
+
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1e293b;
+      background: #fff;
+      --blue: #2563eb;
+      --pale: #eff6ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      padding: max(12px, env(safe-area-inset-top)) 16px
+        max(16px, env(safe-area-inset-bottom));
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+
+    h1 {
+      font-size: 25px;
+      margin: 0;
+      color: #172554;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button,
+    select {
+      border-radius: 12px;
+      border: 1px solid #d6e4f7;
+      padding: 12px;
+      background: white;
+      color: var(--blue);
+    }
+
+    button {
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:disabled {
+      opacity: .4;
+      cursor: default;
+    }
+
+    /* Reduce Safari's long-press selection menu */
+    main.practice,
+    main.practice *,
+    button,
+    select,
+    summary {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    main.practice #kana,
+    main.practice #romaji {
+      -webkit-user-drag: none;
+    }
+
+    .settings {
+      border: 1px solid #d6e4f7;
+      border-radius: 18px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .settings summary {
+      font-size: 19px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #summary {
+      color: #64748b;
+      margin: 10px 0 0;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding-top: 16px;
+    }
+
+    .options label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .options input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      accent-color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field select,
+    .field input {
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* Practice card */
+    main.practice {
+      background: #f7faff;
+      border: 1px solid #dfebfa;
+      border-radius: 19px;
+      width: 100%;
+      height: 310px;
+      min-height: 310px;
+      padding: 8px 10px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* Kana at top, romaji below */
+    .character {
+      position: relative;
+      flex: 0 0 205px;
+      width: 100%;
+      height: 205px;
+      min-height: 205px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+      padding: 4px 44px 0;
+    }
+
+    #kana {
+      width: 100%;
+      height: 112px;
+      min-height: 112px;
+      flex: 0 0 112px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--blue);
+      font-size: clamp(92px, 30vw, 124px);
+      font-weight: 600;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    #romaji {
+      flex: 0 0 44px;
+      width: 100%;
+      height: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      line-height: 1;
+      font-weight: 600;
+      color: #15803d;
+      margin-top: 10px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Speaker button remains tappable */
+    #speak {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #075985;
+      border: 1px solid #bae6fd;
+      font-size: 20px;
+      z-index: 1;
+    }
+
+    #speak:active {
+      background: #bae6fd;
+    }
+
+    /* Number-only countdown */
+    #timer {
+      flex: 0 0 30px;
+      height: 30px;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 30px;
+      text-align: center;
+      margin: 0 0 5px;
+      white-space: nowrap;
+      color: #1e293b;
+    }
+
+    progress {
+      display: block;
+      flex: 0 0 7px;
+      width: 92%;
+      height: 7px;
+      margin: 8px auto 0;
+      accent-color: #3b82f6;
+    }
+
+    #progressText {
+      flex: 0 0 22px;
+      height: 22px;
+      color: #64748b;
+      text-align: center;
+      margin: 8px 0 0;
+      white-space: nowrap;
+      font-size: 17px;
+    }
+
+    #status {
+      display: none;
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .nav button {
+      min-height: 54px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .primary {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .controls button {
+      background: var(--pale);
+      border: 0;
+      min-height: 48px;
+      padding: 8px 4px;
+    }
+
+    #help {
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      main.practice {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      #kana {
+        font-size: clamp(88px, 29vw, 116px);
+      }
+
+      #romaji {
+        font-size: 34px;
+      }
+
+      .nav button {
+        min-height: 48px;
+      }
+
+      .controls button {
+        min-height: 44px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 id="appTitle">Kana Trainer</h1>
+
+    <select id="language" aria-label="Language">
+      <option value="EN">EN</option>
+      <option value="简">简</option>
+      <option value="繁">繁</option>
+      <option value="DE">DE</option>
+      <option value="FR">FR</option>
+      <option value="ไทย">ไทย</option>
+      <option value="한국어">한국어</option>
+    </select>
+  </header>
+
+  <details class="settings" id="settings">
+    <summary id="settingsTitle">Kana &amp; Settings</summary>
+    <p id="summary">200 prompts · 2 seconds</p>
+
+    <div class="options">
+      <label>
+        <input id="hira" type="checkbox" checked>
+        <span id="hiraLabel">Hiragana</span>
+      </label>
+
+      <label>
+        <input id="kata" type="checkbox">
+        <span id="kataLabel">Katakana</span>
+      </label>
+
+      <label>
+        <input id="daku" type="checkbox">
+        <span id="dakuLabel">Dakuten ゛</span>
+      </label>
+
+      <label>
+        <input id="handaku" type="checkbox">
+        <span id="handakuLabel">Handakuten ゜</span>
+      </label>
+
+      <label style="grid-column:1/-1">
+        <input id="combos" type="checkbox">
+        <span id="combosLabel">Combination characters</span>
+      </label>
+
+      <label class="field">
+        <span id="countLabel">Prompts</span>
+        <select id="count">
+          <option>25</option>
+          <option>50</option>
+          <option>75</option>
+          <option>100</option>
+          <option>150</option>
+          <option selected>200</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span id="durationLabel">Countdown (seconds)</span>
+        <input id="duration" type="number" min="1" max="60" step="1" value="2">
+      </label>
+
+      <label style="grid-column:1/-1">
+        <input id="auto" type="checkbox" checked>
+        <span id="autoLabel">Auto Next</span>
+      </label>
+
+      <label style="grid-column:1/-1">
+        <input id="pronunciation" type="checkbox" checked>
+        <span id="pronunciationLabel">Automatic pronunciation</span>
+      </label>
+
+      <label style="grid-column:1/-1">
+        <input id="hint" type="checkbox">
+        <span id="hintLabel">Show romaji hint</span>
+      </label>
+
+      <label style="grid-column:1/-1">
+        <input id="romajiOnly" type="checkbox">
+        <span id="romajiOnlyLabel">Romaji only</span>
+      </label>
+    </div>
+  </details>
+
+  <main class="practice">
+    <div class="character">
+      <button id="speak" type="button"
+        aria-label="Pronounce current kana"
+        title="Pronounce current kana">🔊</button>
+
+      <div id="kana" aria-live="polite">あ</div>
+      <div id="romaji"></div>
+    </div>
+
+    <div id="timer">2</div>
+    <progress id="bar" value="0" max="200"></progress>
+    <div id="progressText">Prompt 0 / 0</div>
+    <div id="status" role="status"></div>
+  </main>
+
+  <div class="nav">
+    <button id="previous">← Previous</button>
+    <button id="next" class="primary">Next →</button>
+  </div>
+
+  <div class="controls">
+    <button id="start">▶ Start</button>
+    <button id="pause" disabled>Ⅱ Pause</button>
+    <button id="stop" disabled>■ Stop</button>
+  </div>
+
+  <button id="help">Help &amp; app information</button>
+
+  <script src="./app.js"></script>
+</body>
+</html>

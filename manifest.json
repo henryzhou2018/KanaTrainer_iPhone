@@ -1,0 +1,14 @@
+
+{
+  "id": "./",
+  "name": "Kana Trainer",
+  "short_name": "Kana Trainer",
+  "description": "Offline Japanese kana practice with timed answers and pronunciation.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}
